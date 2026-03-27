@@ -138,31 +138,42 @@ def _merge_odds_features(matches: pd.DataFrame, odds_1x2: pd.DataFrame,
             bm_data = matched.drop_duplicates(subset=["match_id"], keep="first").set_index("match_id")
             suffix = f"_{bm.lower()}_open"
             for col in ["home_odds", "draw_odds", "away_odds"]:
-                df = df.merge(
-                    bm_data[[col]].rename(columns={col: col.replace("_odds", "") + suffix}),
-                    left_on="match_id", right_index=True, how="left",
-                )
+                new_name = col.replace("_odds", "") + suffix
+                if new_name not in df.columns:
+                    df = df.merge(
+                        bm_data[[col]].rename(columns={col: new_name}),
+                        left_on="match_id", right_index=True, how="left",
+                    )
 
         # 终盘
         close_1x2 = odds_1x2[odds_1x2["is_closing"] == 1]
         for bm in ["B365", "PS"]:
-            bm_data = close_1x2[close_1x2["bookmaker"] == bm].set_index("match_id")
+            bm_aliases = _BM_ALIASES.get(bm, [bm])
+            matched = close_1x2[close_1x2["bookmaker"].isin(bm_aliases)]
+            if matched.empty:
+                matched = close_1x2[close_1x2["bookmaker"] == bm]
+            bm_data = matched.drop_duplicates(subset=["match_id"], keep="first").set_index("match_id")
             suffix = f"_{bm.lower()}_close"
             for col in ["home_odds", "draw_odds", "away_odds"]:
-                df = df.merge(
-                    bm_data[[col]].rename(columns={col: col.replace("_odds", "") + suffix}),
-                    left_on="match_id", right_index=True, how="left",
-                )
+                new_name = col.replace("_odds", "") + suffix
+                if new_name not in df.columns:
+                    df = df.merge(
+                        bm_data[[col]].rename(columns={col: new_name}),
+                        left_on="match_id", right_index=True, how="left",
+                    )
 
         # 市场平均 / 最大
         for bm_label, bm_key in [("avg", "Avg"), ("max", "Max"), ("bbavg", "BbAvg")]:
-            bm_data = open_1x2[open_1x2["bookmaker"] == bm_key].set_index("match_id")
+            bm_data = open_1x2[open_1x2["bookmaker"] == bm_key].drop_duplicates(
+                subset=["match_id"], keep="first").set_index("match_id")
             suffix = f"_{bm_label}_open"
             for col in ["home_odds", "draw_odds", "away_odds"]:
-                df = df.merge(
-                    bm_data[[col]].rename(columns={col: col.replace("_odds", "") + suffix}),
-                    left_on="match_id", right_index=True, how="left",
-                )
+                new_name = col.replace("_odds", "") + suffix
+                if new_name not in df.columns:
+                    df = df.merge(
+                        bm_data[[col]].rename(columns={col: new_name}),
+                        left_on="match_id", right_index=True, how="left",
+                    )
 
         # 多庄家统计
         stats = open_1x2.groupby("match_id").agg(
@@ -174,7 +185,9 @@ def _merge_odds_features(matches: pd.DataFrame, odds_1x2: pd.DataFrame,
             draw_odds_mean=("draw_odds", "mean"),
             away_odds_mean=("away_odds", "mean"),
         )
-        df = df.merge(stats, left_on="match_id", right_index=True, how="left")
+        for col in stats.columns:
+            if col not in df.columns:
+                df = df.merge(stats[[col]], left_on="match_id", right_index=True, how="left")
 
     # 亚盘特征
     if not odds_ah.empty:

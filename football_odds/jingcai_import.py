@@ -262,9 +262,15 @@ def predict_jingcai(log_fn=None) -> list[dict]:
         log("  所有比赛均无赔率数据，无法预测")
         return []
 
-    # 用通用模型预测
+    # 优先使用北单专属模型
+    bd_model_dir = model_dir / "league_BD"
     try:
-        predictor = MatchPredictor.load(model_dir)
+        if (bd_model_dir / "xgb_match_predictor.json").exists():
+            predictor = MatchPredictor.load(bd_model_dir)
+            log(f"  使用北单专属模型")
+        else:
+            predictor = MatchPredictor.load(model_dir)
+            log(f"  使用通用模型（北单专属模型不存在）")
     except Exception as e:
         log(f"  模型加载失败: {e}")
         return []
