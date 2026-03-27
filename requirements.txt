@@ -1,6 +1,7 @@
 # 足彩赔率分析
-# CLI / 核心库：标准库即可。
-# Web 演示：Flask
+# Web：Flask；真实数据：requests + beautifulsoup4
 flask>=3.0.0
+requests>=2.28.0
+beautifulsoup4>=4.12.0
 
 # 可选：pytest 用于测试

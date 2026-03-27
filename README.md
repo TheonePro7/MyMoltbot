@@ -26,7 +26,17 @@ pip install -r requirements.txt
 python3 -m web.app
 ```
 
-浏览器打开 <http://127.0.0.1:5000>。默认加载 `examples/matches_sample.json`；可通过环境变量 `FOOTBALL_ODDS_DATA` 指定其他 JSON 路径。远程机器上需外网访问时，可设置 `HOST=0.0.0.0`（注意防火墙与安全）。
+浏览器打开 <http://127.0.0.1:5000>。
+
+**数据源（页面顶部切换）**
+
+| 参数 | 说明 |
+|------|------|
+| 默认 `?source=jc500` | 抓取 [500 网竞彩](https://trade.500.com/jczq/) 当日 **真实开售 SP**（胜平负 + 让球胜平负两行）；日期可用 `?date=YYYY-MM-DD` |
+| `?source=odds_api` | [The Odds API](https://the-odds-api.com/) 多庄 **h2h 十进制**；需环境变量 **`ODDS_API_KEY`**，可选 `ODDS_SPORT_KEY`（默认 `soccer_epl`）、`ODDS_REGIONS`（默认 `eu`）、`ODDS_MAX_MATCHES`（默认 30） |
+| `?source=file` | 本地 JSON，默认 `examples/matches_sample.json`；路径用环境变量 `FOOTBALL_ODDS_DATA` |
+
+远程访问可设置 `HOST=0.0.0.0`（注意防火墙与安全）。**The Odds API 为境外庄家数据，与体彩竞彩开售赔率不是同一来源。**
 
 ### 测试
 

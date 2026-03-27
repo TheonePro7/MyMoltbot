@@ -8,22 +8,63 @@
   </head>
   <body>
     <header>
-      <h1>足彩赔率分析（演示）</h1>
-      <p>基于欧赔（十进制）计算隐含概率、抽水、按比例去水与多庄对比 — 仅供学习，不构成投注建议。</p>
+      <h1>足彩赔率分析</h1>
+      <p>支持 <strong>500 网竞彩真实 SP</strong>、<strong>The Odds API 多庄 h2h</strong> 与本地 JSON；隐含概率、抽水、去水与多庄对比。仅供学习，不构成投注建议。</p>
     </header>
 
     <main>
+      <form class="toolbar" method="get" action="">
+        <label>
+          数据源
+          <select name="source" onchange="this.form.submit()">
+            <option value="jc500" {% if source == 'jc500' %}selected{% endif %}>500 网 · 竞彩（真实）</option>
+            <option value="odds_api" {% if source == 'odds_api' %}selected{% endif %}>The Odds API（需 ODDS_API_KEY）</option>
+            <option value="file" {% if source == 'file' %}selected{% endif %}>本地 JSON 示例</option>
+          </select>
+        </label>
+        {% if source == 'jc500' %}
+        <label>
+          日期
+          <input type="date" name="date" value="{{ jc_date }}" />
+        </label>
+        <button type="submit">刷新</button>
+        {% endif %}
+      </form>
+
+      {% if info %}
+      <p class="meta">
+        当前：<code>{{ info.source }}</code>
+        {% if info.jc_date %} · 竞彩日期 <code>{{ info.jc_date }}</code>{% endif %}
+        {% if info.path %} · 文件 <code>{{ info.path }}</code>{% endif %}
+        {% if info.sport_key %} · 运动 <code>{{ info.sport_key }}</code>（环境变量 <code>ODDS_SPORT_KEY</code> 可改）{% endif %}
+      </p>
+      {% endif %}
+
       {% if error %}
       <div class="alert">{{ error }}</div>
       {% endif %}
 
-      <p class="meta">数据文件：<code>{{ data_path }}</code> · 可通过环境变量 <code>FOOTBALL_ODDS_DATA</code> 指定其他 JSON。</p>
+      {% if source == 'odds_api' and not error %}
+      <p class="meta">请在运行环境中设置 <code>ODDS_API_KEY</code>；可选 <code>ODDS_SPORT_KEY</code>（默认 soccer_epl）、<code>ODDS_REGIONS</code>（默认 eu）、<code>ODDS_MAX_MATCHES</code>（默认 30）。</p>
+      {% endif %}
 
       {% for item in matches_data %}
       {% set m = item.match %}
       {% set c = item.compare %}
+      {% set meta = item.meta %}
       <section class="card">
         <h2>{{ m.match_id }} · {{ m.home_team }} vs {{ m.away_team }}</h2>
+        {% if item.subtitle %}
+        <p class="meta tagline">{{ item.subtitle }}</p>
+        {% endif %}
+        {% if meta %}
+        <p class="meta">
+          {{ meta.league }} · 开赛 {{ meta.kickoff }}
+          {% if meta.ended %}<span class="badge ended">已截止/赛果</span>{% else %}<span class="badge live">未赛/可售</span>{% endif %}
+          {% if meta.score_text %} · 比分 <strong>{{ meta.score_text }}</strong>{% endif %}
+          {% if meta.fixture_id %} · fid <code>{{ meta.fixture_id }}</code>{% endif %}
+        </p>
+        {% endif %}
 
         <div class="consensus">
           <div class="consensus-item">
@@ -43,7 +84,7 @@
         <p class="meta">
           赔率区间（主）{{ "%.2f"|format(c.odds_range.home.min) }} ~ {{ "%.2f"|format(c.odds_range.home.max) }}，
           均值 {{ "%.2f"|format(c.odds_range.home.mean) }} ·
-          最高赔庄家：主 {{ c.best_odds_bookmaker.home }}，平 {{ c.best_odds_bookmaker.draw }}，客 {{ c.best_odds_bookmaker.away }}
+          最高赔：主 {{ c.best_odds_bookmaker.home }}，平 {{ c.best_odds_bookmaker.draw }}，客 {{ c.best_odds_bookmaker.away }}
         </p>
 
         <table>
@@ -78,17 +119,15 @@
       {% endfor %}
 
       {% if not matches_data and not error %}
-      <div class="alert">暂无比赛数据。</div>
+      <div class="alert">暂无比赛数据（竞彩可能当日无赛程或页面结构已变）。</div>
       {% endif %}
 
       <div class="hint">
-        启动命令：<code>pip install -r requirements.txt</code> 后执行
-        <code>python3 -m web.app</code>，浏览器打开
-        <code>http://127.0.0.1:5000</code>。远程访问可设置环境变量
-        <code>HOST=0.0.0.0</code>。
+        启动：<code>pip install -r requirements.txt</code> → <code>python3 -m web.app</code> →
+        <code>http://127.0.0.1:5000</code>。默认拉取当日竞彩；远程访问可设 <code>HOST=0.0.0.0</code>。
       </div>
     </main>
 
-    <footer>MyMoltbot · 足彩分析演示页</footer>
+    <footer>MyMoltbot · 足彩分析</footer>
   </body>
 </html>

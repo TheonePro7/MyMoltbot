@@ -10,7 +10,8 @@ class TestWebApp(unittest.TestCase):
         self.client = app.test_client()
 
     def test_index_ok(self) -> None:
-        r = self.client.get("/")
+        # 使用本地 JSON，避免 CI 依赖外网 500
+        r = self.client.get("/?source=file")
         self.assertEqual(r.status_code, 200)
         self.assertIn("足彩赔率分析", r.data.decode("utf-8"))
 

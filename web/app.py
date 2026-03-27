@@ -1,6 +1,6 @@
 """
 足彩赔率分析 — Web 入口。
-默认读取项目根目录下 examples/matches_sample.json，在浏览器中展示多庄对比与逐庄分析。
+支持数据源：500 网竞彩（真实 SP）、The Odds API（多庄欧赔）、本地 JSON 示例。
 """
 
 from __future__ import annotations
@@ -8,11 +8,10 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
-from football_odds.analysis import compare_bookmakers, load_matches_from_json
+from web.data_service import cst_today_str, load_rows_for_web
 
-# 项目根目录（web/app.py 的上两级为仓库根时，parent.parent）
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DATA = ROOT / "examples" / "matches_sample.json"
 
@@ -29,27 +28,21 @@ def pct_filter(value: float, digits: int = 2) -> str:
     return f"{100.0 * float(value):.{digits}f}%"
 
 
-def _build_view_model():
-    """加载示例数据并生成每场比赛的对比结果，供模板渲染。"""
-    data_path = os.environ.get("FOOTBALL_ODDS_DATA", str(DEFAULT_DATA))
-    path = Path(data_path)
-    if not path.is_file():
-        return [], f"数据文件不存在: {path}"
-    matches = load_matches_from_json(path)
-    rows = []
-    for m in matches:
-        rows.append({"match": m, "compare": compare_bookmakers(m)})
-    return rows, None
-
-
 @app.get("/")
 def index():
-    matches_data, error = _build_view_model()
+    source = request.args.get("source", "jc500").strip()
+    jc_date = request.args.get("date")
+    rows, error, info = load_rows_for_web(source, jc_date=jc_date)
+    data_path = os.environ.get("FOOTBALL_ODDS_DATA", str(DEFAULT_DATA))
+    form_jc_date = (jc_date or "").strip() or cst_today_str()
     return render_template(
         "index.html",
-        matches_data=matches_data,
+        matches_data=rows,
         error=error,
-        data_path=os.environ.get("FOOTBALL_ODDS_DATA", str(DEFAULT_DATA)),
+        data_path=data_path,
+        source=source,
+        jc_date=form_jc_date,
+        info=info,
     )
 
 
@@ -59,7 +52,6 @@ def health():
 
 
 def main():
-    # 便于 python3 -m web.app 启动
     port = int(os.environ.get("PORT", "5000"))
     host = os.environ.get("HOST", "127.0.0.1")
     app.run(host=host, port=port, debug=os.environ.get("FLASK_DEBUG") == "1")
