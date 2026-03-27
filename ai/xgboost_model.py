@@ -114,7 +114,14 @@ class MatchPredictor:
         """预测概率。返回 (n_samples, 3) 的数组，列为 [主胜, 平, 客胜]。"""
         if self.model is None:
             raise RuntimeError("模型未训练或未加载")
-        X = df[self.feature_names].fillna(-999)
+        available = [c for c in self.feature_names if c in df.columns]
+        missing = [c for c in self.feature_names if c not in df.columns]
+        X = df[available].copy()
+        for c in missing:
+            X[c] = -999
+        X = X[self.feature_names].fillna(-999)
+        for c in X.columns:
+            X[c] = pd.to_numeric(X[c], errors="coerce").fillna(-999)
         dmat = xgb.DMatrix(X, feature_names=self.feature_names)
         return self.model.predict(dmat)
 
