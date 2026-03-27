@@ -112,7 +112,7 @@ def import_single_expect(expect: str, force: bool = False, log_fn=None) -> int:
                 "away_team": br.away_team,
                 "fthg": None, "ftag": None, "ftr": None,
                 "hthg": None, "htag": None, "htr": None,
-                "referee": None,
+                "referee": br.league,
                 "home_shots": None, "away_shots": None,
                 "home_sot": None, "away_sot": None,
                 "home_corners": None, "away_corners": None,
