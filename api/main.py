@@ -7,7 +7,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import history, prediction, training
+from api.routers import history, prediction, training, parlay
 
 app = FastAPI(
     title="MyMoltbot API",
@@ -26,6 +26,7 @@ app.add_middleware(
 app.include_router(history.router)
 app.include_router(prediction.router)
 app.include_router(training.router)
+app.include_router(parlay.router)
 
 
 @app.get("/api/health")
