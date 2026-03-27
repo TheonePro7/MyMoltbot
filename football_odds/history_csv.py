@@ -219,6 +219,7 @@ def parse_csv_rows(csv_text: str, season: str) -> list[dict[str, Any]]:
     解析 CSV 文本为结构化行列表。
     每行包含 match 基本信息 + odds_1x2 + odds_ou25 + odds_asian 子列表。
     """
+    csv_text = csv_text.lstrip("\ufeff")
     reader = csv.DictReader(io.StringIO(csv_text))
     if reader.fieldnames is None:
         return []

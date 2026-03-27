@@ -6,3 +6,4 @@ venv/
 .env
 data/*.sqlite3
 data/*.db
+data/csv_cache/
