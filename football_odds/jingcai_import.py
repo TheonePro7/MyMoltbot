@@ -262,37 +262,58 @@ def predict_jingcai(log_fn=None) -> list[dict]:
         log("  所有比赛均无赔率数据，无法预测")
         return []
 
-    # 优先使用北单专属模型
-    bd_model_dir = model_dir / "league_BD"
-    try:
-        if (bd_model_dir / "xgb_match_predictor.json").exists():
-            predictor = MatchPredictor.load(bd_model_dir)
-            log(f"  使用北单专属模型")
-        else:
-            predictor = MatchPredictor.load(model_dir)
-            log(f"  使用通用模型（北单专属模型不存在）")
-    except Exception as e:
-        log(f"  模型加载失败: {e}")
-        return []
+    from football_odds.team_mapping import find_league, cn_to_en
 
-    preds = predictor.predict(df)
-
+    # 按球队名匹配联赛，用联赛专属模型预测
     results = []
     label_map = {"H": "主胜", "D": "平", "A": "客胜"}
-    for _, row in preds.iterrows():
-        results.append({
-            "match_id": int(row["match_id"]),
-            "division": row["division"],
-            "match_date": row["match_date"],
-            "home_team": row["home_team"],
-            "away_team": row["away_team"],
-            "prob_home": round(float(row["prob_home"]), 4),
-            "prob_draw": round(float(row["prob_draw"]), 4),
-            "prob_away": round(float(row["prob_away"]), 4),
-            "pred_label": row["pred_label"],
-            "pred_text": label_map.get(row["pred_label"], row["pred_label"]),
-            "confidence": round(float(row["confidence"]), 4),
-        })
+    predictors_cache: dict[str, MatchPredictor] = {}
+
+    for _, match_row in df.iterrows():
+        home_cn = match_row["home_team"]
+        away_cn = match_row["away_team"]
+        league = find_league(home_cn, away_cn)
+
+        en_home = cn_to_en(home_cn) or home_cn
+        en_away = cn_to_en(away_cn) or away_cn
+
+        # 选模型
+        model_key = league or "default"
+        if model_key not in predictors_cache:
+            league_dir = model_dir / f"league_{league}" if league else None
+            try:
+                if league_dir and (league_dir / "xgb_match_predictor.json").exists():
+                    predictors_cache[model_key] = MatchPredictor.load(league_dir)
+                else:
+                    predictors_cache[model_key] = MatchPredictor.load(model_dir)
+            except Exception:
+                predictors_cache[model_key] = MatchPredictor.load(model_dir)
+
+        predictor = predictors_cache[model_key]
+
+        single_df = df[df["match_id"] == match_row["match_id"]].copy()
+        try:
+            pred = predictor.predict(single_df)
+            row = pred.iloc[0]
+            results.append({
+                "match_id": int(row["match_id"]),
+                "division": match_row["division"],
+                "match_date": row["match_date"],
+                "home_team": f"{home_cn}",
+                "away_team": f"{away_cn}",
+                "en_home": en_home,
+                "en_away": en_away,
+                "league": league or "未知",
+                "prob_home": round(float(row["prob_home"]), 4),
+                "prob_draw": round(float(row["prob_draw"]), 4),
+                "prob_away": round(float(row["prob_away"]), 4),
+                "pred_label": row["pred_label"],
+                "pred_text": label_map.get(row["pred_label"], row["pred_label"]),
+                "confidence": round(float(row["confidence"]), 4),
+                "model_used": model_key,
+            })
+        except Exception:
+            pass
 
     results.sort(key=lambda x: x["confidence"], reverse=True)
     log(f"  预测完成: {len(results)} 场比赛")
@@ -332,12 +353,14 @@ def main() -> int:
         preds = predict_jingcai(log_fn=log)
         if preds:
             log("")
-            log(f"{'来源':>4} {'日期':>12} {'主队':>12} {'客队':>12} {'预测':>4} {'置信度':>6}")
-            log("-" * 65)
+            log(f"{'来源':>4} {'联赛':>4} {'日期':>12} {'主队':>12} {'客队':>12} {'预测':>4} {'置信度':>6} {'模型'}")
+            log("-" * 85)
             for p in preds:
                 conf_pct = f"{p['confidence']:.0%}"
-                log(f"{p['division']:>4} {p['match_date']:>12} {p['home_team']:>12} {p['away_team']:>12} "
-                    f"{p['pred_text']:>4} {conf_pct:>6}")
+                league = p.get('league', '?')
+                model = p.get('model_used', '?')
+                log(f"{p['division']:>4} {league:>4} {p['match_date']:>12} {p['home_team']:>12} {p['away_team']:>12} "
+                    f"{p['pred_text']:>4} {conf_pct:>6} {model}")
 
     return 0
 
