@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}简易预测{% endblock %}
+{% block body %}
+<header>
+  <h1>简易预测（去水后概率最大项）</h1>
+  <p>基于当日体彩竞彩官方 SP，按比例去水后取概率最高结果；非模型预测，仅供对照。</p>
+</header>
+<main>
+  <form class="toolbar" method="get">
+    <label>日期 <input type="date" name="date" value="{{ jc_date }}" /></label>
+    <button type="submit">刷新</button>
+  </form>
+  {% if not predictions %}
+  <div class="alert">当日无数据或抓取失败。</div>
+  {% endif %}
+  {% for p in predictions %}
+  <section class="card">
+    <h2>{{ p.matchnum }} · {{ p.home }} vs {{ p.away }}（{{ p.kind }}）</h2>
+    <p class="meta">{{ p.league }} · {{ p.kickoff }} · fid <code>{{ p.fixture_id }}</code></p>
+    <p class="predict-result">
+      倾向：<strong>{{ p.prediction.label }}</strong>
+      （去水后约 {{ p.prediction.confidence | pct }}）
+    </p>
+    <p class="meta">SP：主 {{ "%.2f"|format(p.prediction.odds.home) }} /
+      平 {{ "%.2f"|format(p.prediction.odds.draw) }} /
+      客 {{ "%.2f"|format(p.prediction.odds.away) }}</p>
+  </section>
+  {% endfor %}
+</main>
+<footer>MyMoltbot</footer>
+{% endblock %}

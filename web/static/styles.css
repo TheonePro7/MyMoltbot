@@ -22,6 +22,50 @@ body {
   min-height: 100vh;
 }
 
+.topnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  padding: 0.75rem 1.5rem;
+  background: #131a24;
+  border-bottom: 1px solid var(--border);
+}
+
+.topnav a {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.topnav a:hover {
+  text-decoration: underline;
+}
+
+.flash-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem 0;
+}
+
+.flash {
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.flash.ok {
+  background: rgba(52, 199, 89, 0.12);
+  border: 1px solid var(--win);
+  color: #9ee5a8;
+}
+
+.flash.error {
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid var(--loss);
+  color: #ffb4b4;
+}
+
 header {
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--border);
@@ -221,4 +265,81 @@ code {
   border-top: 1px solid var(--border);
   font-size: 0.8rem;
   color: var(--muted);
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+table.dense {
+  font-size: 0.8rem;
+}
+
+table.dense th,
+table.dense td {
+  padding: 0.45rem 0.5rem;
+}
+
+.combo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0;
+}
+
+.combo-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  color: var(--text);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1.2rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-top: 0.75rem;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+.inline-form {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.profit-pos {
+  color: var(--win);
+}
+
+.profit-neg {
+  color: #ff8a8a;
+}
+
+.plain-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.875rem;
+}
+
+.predict-result {
+  font-size: 1.05rem;
+  margin: 0.75rem 0;
 }

@@ -1,12 +1,6 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>足彩赔率分析</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
-  </head>
-  <body>
+{% extends "base.html" %}
+{% block title %}足彩赔率分析{% endblock %}
+{% block body %}
     <header>
       <h1>足彩赔率分析</h1>
       <p>支持 <strong>500 网竞彩真实 SP</strong>、<strong>The Odds API 多庄 h2h</strong> 与本地 JSON；隐含概率、抽水、去水与多庄对比。仅供学习，不构成投注建议。</p>
@@ -124,10 +118,9 @@
 
       <div class="hint">
         启动：<code>pip install -r requirements.txt</code> → <code>python3 -m web.app</code> →
-        <code>http://127.0.0.1:5000</code>。默认拉取当日竞彩；远程访问可设 <code>HOST=0.0.0.0</code>。
+        <code>http://127.0.0.1:5000</code>。导航栏可进入模拟投注、赛果与盈亏。
       </div>
     </main>
 
     <footer>MyMoltbot · 足彩分析</footer>
-  </body>
-</html>
+{% endblock %}

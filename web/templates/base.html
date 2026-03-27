@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}足彩分析{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <nav class="topnav">
+      <a href="{{ url_for('index') }}">赔率分析</a>
+      <a href="{{ url_for('predict_page') }}">简易预测</a>
+      <a href="{{ url_for('bet_wizard') }}">模拟投注</a>
+      <a href="{{ url_for('slips_list') }}">方案与盈亏</a>
+      <a href="{{ url_for('results_page') }}">赛果录入</a>
+    </nav>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-wrap">
+          {% for category, msg in messages %}
+            <div class="flash {{ category }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block body %}{% endblock %}
+  </body>
+</html>
