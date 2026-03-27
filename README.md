@@ -38,6 +38,12 @@ python3 -m web.app
 
 远程访问可设置 `HOST=0.0.0.0`（注意防火墙与安全）。**The Odds API 为境外庄家数据，与体彩竞彩开售赔率不是同一来源。**
 
+### API Key 怎么配置（不要发给任何人）
+
+1. **推荐**：在项目根目录复制 `.env.example` 为 `.env`，填写 `ODDS_API_KEY=你的密钥`。启动 `python3 -m web.app` 时会自动加载（`python-dotenv`）。  
+2. **终端临时**：`export ODDS_API_KEY='你的密钥'` 后同一终端里运行程序。  
+3. **Cursor**：在终端用方式 1 或 2 即可；勿在聊天里粘贴 Key。
+
 ### 完整 Web 功能（拉取到本地后）
 
 导航栏包含：

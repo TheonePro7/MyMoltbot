@@ -11,6 +11,7 @@ from pathlib import Path
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 
+from football_odds.dotenv_load import ensure_loaded
 from football_odds.jc_rows import iter_selections
 from football_odds.jc500 import fetch_jc_rows
 from football_odds.models import BookmakerLine
@@ -32,6 +33,7 @@ from web.bet_store import (
 from web.data_service import cst_today_str, load_rows_for_web
 
 ROOT = Path(__file__).resolve().parent.parent
+ensure_loaded()
 DEFAULT_DATA = ROOT / "examples" / "matches_sample.json"
 
 app = Flask(
