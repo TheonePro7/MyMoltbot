@@ -31,6 +31,13 @@ from web.bet_store import (
     set_result,
 )
 from web.data_service import cst_today_str, load_rows_for_web
+from football_odds.history_db import (
+    connect_history,
+    count_matches as history_count,
+    get_match_with_odds,
+    query_matches,
+    summary_stats as history_summary,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 ensure_loaded()
@@ -331,6 +338,71 @@ def results_save():
             set_result(conn, fid, hg, ag)
     flash("赛果已保存", "ok")
     return redirect(url_for("results_page", date=jc_date))
+
+
+@app.get("/history")
+def history_page():
+    division = (request.args.get("division") or "").strip() or None
+    season = (request.args.get("season") or "").strip() or None
+    page = max(1, int(request.args.get("page") or "1"))
+    per_page = 50
+
+    with connect_history() as conn:
+        stats = history_summary(conn)
+        total_count = history_count(conn, division, season)
+        total_pages = max(1, (total_count + per_page - 1) // per_page)
+        page = min(page, total_pages)
+        offset = (page - 1) * per_page
+        raw_matches = query_matches(conn, division, season, limit=per_page, offset=offset)
+
+        matches_with_odds = []
+        for m in raw_matches:
+            row = conn.execute(
+                "SELECT home_odds, draw_odds, away_odds FROM odds_1x2 "
+                "WHERE match_id=? AND bookmaker='B365' AND is_closing=0",
+                (m["id"],),
+            ).fetchone()
+            m["b365_h"] = f"{row['home_odds']:.2f}" if row and row["home_odds"] else None
+            m["b365_d"] = f"{row['draw_odds']:.2f}" if row and row["draw_odds"] else None
+            m["b365_a"] = f"{row['away_odds']:.2f}" if row and row["away_odds"] else None
+
+            row2 = conn.execute(
+                "SELECT home_odds, draw_odds, away_odds FROM odds_1x2 "
+                "WHERE match_id=? AND bookmaker='PS' AND is_closing=0",
+                (m["id"],),
+            ).fetchone()
+            m["ps_h"] = f"{row2['home_odds']:.2f}" if row2 and row2["home_odds"] else None
+            m["ps_d"] = f"{row2['draw_odds']:.2f}" if row2 and row2["draw_odds"] else None
+            m["ps_a"] = f"{row2['away_odds']:.2f}" if row2 and row2["away_odds"] else None
+
+            ah = conn.execute(
+                "SELECT handicap FROM odds_asian "
+                "WHERE match_id=? AND bookmaker='B365' AND is_closing=0",
+                (m["id"],),
+            ).fetchone()
+            m["ah_handicap"] = ah["handicap"] if ah and ah["handicap"] is not None else None
+            matches_with_odds.append(m)
+
+    return render_template(
+        "history.html",
+        stats=stats,
+        matches=matches_with_odds,
+        division=division,
+        season=season,
+        page=page,
+        total_pages=total_pages,
+        total_count=total_count,
+    )
+
+
+@app.get("/history/<int:match_id>")
+def history_detail(match_id: int):
+    with connect_history() as conn:
+        match = get_match_with_odds(conn, match_id)
+    if not match:
+        flash("比赛不存在", "error")
+        return redirect(url_for("history_page"))
+    return render_template("history_detail.html", match=match)
 
 
 @app.get("/health")

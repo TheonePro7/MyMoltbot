@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}比赛详情 - {{ match.home_team }} vs {{ match.away_team }}{% endblock %}
+{% block body %}
+<h2>{{ match.home_team }} vs {{ match.away_team }}</h2>
+<p>
+  <strong>日期：</strong>{{ match.match_date }}
+  {% if match.match_time %} {{ match.match_time }}{% endif %} &nbsp;|&nbsp;
+  <strong>联赛：</strong>{{ match.division }} ({{ match.season }}) &nbsp;|&nbsp;
+  <strong>比分：</strong>{{ match.fthg }}:{{ match.ftag }} ({{ match.ftr }})
+  {% if match.hthg is not none %} 半场 {{ match.hthg }}:{{ match.htag }}{% endif %}
+</p>
+
+{% if match.referee %}
+<p><strong>裁判：</strong>{{ match.referee }}</p>
+{% endif %}
+
+<!-- 比赛统计 -->
+{% if match.home_shots is not none %}
+<details open style="margin:1em 0;">
+  <summary style="font-weight:bold;">比赛统计</summary>
+  <table class="data-table" style="margin-top:0.5em;max-width:500px;">
+    <thead><tr><th>统计项</th><th>{{ match.home_team }}</th><th>{{ match.away_team }}</th></tr></thead>
+    <tbody>
+      <tr><td>射门</td><td>{{ match.home_shots or '-' }}</td><td>{{ match.away_shots or '-' }}</td></tr>
+      <tr><td>射正</td><td>{{ match.home_sot or '-' }}</td><td>{{ match.away_sot or '-' }}</td></tr>
+      <tr><td>角球</td><td>{{ match.home_corners or '-' }}</td><td>{{ match.away_corners or '-' }}</td></tr>
+      <tr><td>犯规</td><td>{{ match.home_fouls or '-' }}</td><td>{{ match.away_fouls or '-' }}</td></tr>
+      <tr><td>黄牌</td><td>{{ match.home_yellows or '-' }}</td><td>{{ match.away_yellows or '-' }}</td></tr>
+      <tr><td>红牌</td><td>{{ match.home_reds or '-' }}</td><td>{{ match.away_reds or '-' }}</td></tr>
+    </tbody>
+  </table>
+</details>
+{% endif %}
+
+<!-- 欧赔 1X2 -->
+{% if match.odds_1x2 %}
+<details open style="margin:1em 0;">
+  <summary style="font-weight:bold;">欧赔 1X2（十进制）</summary>
+  <table class="data-table" style="margin-top:0.5em;">
+    <thead><tr><th>庄家</th><th>类型</th><th>主胜</th><th>平局</th><th>客胜</th><th>抽水</th></tr></thead>
+    <tbody>
+      {% for o in match.odds_1x2 %}
+      <tr{% if o.is_closing %} style="background:#f0f7e6;"{% endif %}>
+        <td>{{ o.bookmaker }}</td>
+        <td>{{ '终盘' if o.is_closing else '初盘' }}</td>
+        <td>{{ '%.2f'|format(o.home_odds) if o.home_odds else '-' }}</td>
+        <td>{{ '%.2f'|format(o.draw_odds) if o.draw_odds else '-' }}</td>
+        <td>{{ '%.2f'|format(o.away_odds) if o.away_odds else '-' }}</td>
+        <td>
+          {% if o.home_odds and o.draw_odds and o.away_odds %}
+            {{ '%.1f%%'|format((1/o.home_odds + 1/o.draw_odds + 1/o.away_odds - 1) * 100) }}
+          {% else %}-{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</details>
+{% endif %}
+
+<!-- 大小球 -->
+{% if match.odds_ou25 %}
+<details open style="margin:1em 0;">
+  <summary style="font-weight:bold;">大小球 2.5</summary>
+  <table class="data-table" style="margin-top:0.5em;">
+    <thead><tr><th>庄家</th><th>类型</th><th>大 2.5</th><th>小 2.5</th></tr></thead>
+    <tbody>
+      {% for o in match.odds_ou25 %}
+      <tr{% if o.is_closing %} style="background:#f0f7e6;"{% endif %}>
+        <td>{{ o.bookmaker }}</td>
+        <td>{{ '终盘' if o.is_closing else '初盘' }}</td>
+        <td>{{ '%.2f'|format(o.over_odds) if o.over_odds else '-' }}</td>
+        <td>{{ '%.2f'|format(o.under_odds) if o.under_odds else '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</details>
+{% endif %}
+
+<!-- 亚盘 -->
+{% if match.odds_asian %}
+<details open style="margin:1em 0;">
+  <summary style="font-weight:bold;">亚盘（让球）</summary>
+  <table class="data-table" style="margin-top:0.5em;">
+    <thead><tr><th>庄家</th><th>类型</th><th>盘口</th><th>主队水位</th><th>客队水位</th></tr></thead>
+    <tbody>
+      {% for o in match.odds_asian %}
+      <tr{% if o.is_closing %} style="background:#f0f7e6;"{% endif %}>
+        <td>{{ o.bookmaker }}</td>
+        <td>{{ '终盘' if o.is_closing else '初盘' }}</td>
+        <td>{{ o.handicap if o.handicap is not none else '-' }}</td>
+        <td>{{ '%.2f'|format(o.home_odds) if o.home_odds else '-' }}</td>
+        <td>{{ '%.2f'|format(o.away_odds) if o.away_odds else '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</details>
+{% endif %}
+
+<p><a href="/history?division={{ match.division }}&season={{ match.season }}">« 返回列表</a></p>
+{% endblock body %}

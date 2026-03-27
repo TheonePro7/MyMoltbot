@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}历史赔率数据{% endblock %}
+{% block body %}
+<h2>历史赔率数据</h2>
+
+<div class="info-box" style="margin-bottom:1em;padding:0.8em;background:#e8f4fd;border-radius:6px;">
+  <strong>数据来源：</strong>football-data.co.uk &nbsp;|&nbsp;
+  <strong>比赛总数：</strong>{{ stats.total_matches | default(0) }} &nbsp;|&nbsp;
+  <strong>欧赔记录：</strong>{{ stats.total_odds_records | default(0) }} &nbsp;|&nbsp;
+  <strong>亚盘记录：</strong>{{ stats.total_asian_records | default(0) }}
+</div>
+
+<!-- 联赛概览 -->
+{% if stats.by_division %}
+<details open style="margin-bottom:1.5em;">
+  <summary style="cursor:pointer;font-weight:bold;font-size:1.1em;">各联赛数据统计</summary>
+  <table class="data-table" style="margin-top:0.5em;">
+    <thead>
+      <tr><th>联赛代码</th><th>国家</th><th>联赛名称</th><th>比赛数</th><th>赛季范围</th></tr>
+    </thead>
+    <tbody>
+      {% for d in stats.by_division %}
+      <tr>
+        <td><a href="?division={{ d.division }}">{{ d.division }}</a></td>
+        <td>{{ d.country or '' }}</td>
+        <td>{{ d.league_name or '' }}</td>
+        <td>{{ d.match_count }}</td>
+        <td>{{ d.first_season }} ~ {{ d.last_season }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</details>
+{% endif %}
+
+<!-- 筛选 -->
+<form method="get" style="margin-bottom:1em;display:flex;gap:0.8em;flex-wrap:wrap;align-items:center;">
+  <label>联赛：
+    <select name="division">
+      <option value="">全部</option>
+      {% for d in stats.by_division %}
+      <option value="{{ d.division }}" {% if division == d.division %}selected{% endif %}>
+        {{ d.division }} - {{ d.league_name or '' }}
+      </option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>赛季：
+    <input type="text" name="season" value="{{ season or '' }}" placeholder="如 2526" size="6">
+  </label>
+  <button type="submit">筛选</button>
+  <span style="color:#888;">共 {{ total_count }} 场</span>
+</form>
+
+<!-- 比赛列表 -->
+{% if matches %}
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>日期</th><th>联赛</th><th>主队</th><th>比分</th><th>客队</th>
+      <th>B365 主</th><th>B365 平</th><th>B365 客</th>
+      <th>PS 主</th><th>PS 平</th><th>PS 客</th>
+      <th>亚盘</th><th>详情</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for m in matches %}
+    <tr>
+      <td>{{ m.match_date }}</td>
+      <td>{{ m.division }}</td>
+      <td>{{ m.home_team }}</td>
+      <td><strong>{{ m.fthg if m.fthg is not none else '?' }}:{{ m.ftag if m.ftag is not none else '?' }}</strong>
+        <small>({{ m.ftr or '?' }})</small>
+      </td>
+      <td>{{ m.away_team }}</td>
+      <td>{{ m.b365_h or '-' }}</td>
+      <td>{{ m.b365_d or '-' }}</td>
+      <td>{{ m.b365_a or '-' }}</td>
+      <td>{{ m.ps_h or '-' }}</td>
+      <td>{{ m.ps_d or '-' }}</td>
+      <td>{{ m.ps_a or '-' }}</td>
+      <td>{{ m.ah_handicap or '-' }}</td>
+      <td><a href="/history/{{ m.id }}">查看</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- 分页 -->
+<div style="margin:1em 0;display:flex;gap:1em;">
+  {% if page > 1 %}
+  <a href="?division={{ division or '' }}&season={{ season or '' }}&page={{ page - 1 }}">« 上一页</a>
+  {% endif %}
+  <span>第 {{ page }} / {{ total_pages }} 页</span>
+  {% if page < total_pages %}
+  <a href="?division={{ division or '' }}&season={{ season or '' }}&page={{ page + 1 }}">下一页 »</a>
+  {% endif %}
+</div>
+{% else %}
+<p style="color:#888;">暂无历史数据。请先运行导入命令：<code>python3 -m football_odds.history_import</code></p>
+{% endif %}
+{% endblock body %}

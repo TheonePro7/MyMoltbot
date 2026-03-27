@@ -13,6 +13,7 @@
       <a href="{{ url_for('bet_wizard') }}">模拟投注</a>
       <a href="{{ url_for('slips_list') }}">方案与盈亏</a>
       <a href="{{ url_for('results_page') }}">赛果录入</a>
+      <a href="{{ url_for('history_page') }}">历史数据</a>
     </nav>
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
