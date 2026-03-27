@@ -132,6 +132,21 @@ _LEAGUE_SEED = [
     ("G1", "Greece", "Super League"),
     ("SC0", "Scotland", "Premiership"),
     ("SC1", "Scotland", "Championship"),
+    ("UCL", "Europe", "UEFA Champions League"),
+    ("UEL", "Europe", "UEFA Europa League"),
+    ("MLS", "USA", "MLS"),
+    ("J1", "Japan", "J League"),
+    ("K1", "Korea", "K League 1"),
+    ("CSL", "China", "Chinese Super League"),
+    ("A1", "Australia", "A-League"),
+    ("BR1", "Brazil", "Serie A"),
+    ("AR1", "Argentina", "Primera Division"),
+    ("MX1", "Mexico", "Liga MX"),
+    ("DK1", "Denmark", "Superliga"),
+    ("SE1", "Sweden", "Allsvenskan"),
+    ("NO1", "Norway", "Eliteserien"),
+    ("CH1", "Switzerland", "Super League"),
+    ("AT1", "Austria", "Bundesliga"),
 ]
 
 
