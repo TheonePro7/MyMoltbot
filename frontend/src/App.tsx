@@ -1,10 +1,11 @@
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Layout, Menu, ConfigProvider, theme } from 'antd';
-import { DashboardOutlined, DatabaseOutlined, ExperimentOutlined } from '@ant-design/icons';
+import { DashboardOutlined, DatabaseOutlined, ExperimentOutlined, ShoppingCartOutlined, BarChartOutlined } from '@ant-design/icons';
 import Dashboard from './pages/Dashboard';
 import History from './pages/History';
 import MatchDetailPage from './pages/MatchDetailPage';
 import Prediction from './pages/Prediction';
+import Evaluate from './pages/Evaluate';
 
 const { Header, Content, Footer } = Layout;
 
@@ -14,6 +15,7 @@ function AppMenu() {
   let selected = '/';
   if (path.startsWith('/history')) selected = '/history';
   if (path.startsWith('/prediction')) selected = '/prediction';
+  if (path.startsWith('/evaluate')) selected = '/evaluate';
 
   return (
     <Menu theme="dark" mode="horizontal" selectedKeys={[selected]} style={{ flex: 1 }}
@@ -21,6 +23,8 @@ function AppMenu() {
         { key: '/', icon: <DashboardOutlined />, label: <Link to="/">数据总览</Link> },
         { key: '/history', icon: <DatabaseOutlined />, label: <Link to="/history">历史数据</Link> },
         { key: '/prediction', icon: <ExperimentOutlined />, label: <Link to="/prediction">智能预测</Link> },
+        { key: '/evaluate', icon: <BarChartOutlined />, label: <Link to="/evaluate">模型评估</Link> },
+        { key: 'sim', icon: <ShoppingCartOutlined />, label: <a href="http://localhost:5000/bet" target="_blank" rel="noreferrer">模拟投注</a> },
       ]}
     />
   );
@@ -46,6 +50,7 @@ export default function App() {
               <Route path="/history" element={<History />} />
               <Route path="/history/:id" element={<MatchDetailPage />} />
               <Route path="/prediction" element={<Prediction />} />
+              <Route path="/evaluate" element={<Evaluate />} />
             </Routes>
           </Content>
           <Footer style={{ textAlign: 'center', color: '#999' }}>
