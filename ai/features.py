@@ -225,9 +225,10 @@ def _merge_odds_features(matches: pd.DataFrame, odds_1x2: pd.DataFrame,
     return df
 
 
-def compute_features(df: pd.DataFrame) -> pd.DataFrame:
+def compute_features(df: pd.DataFrame, add_team_features: bool = True) -> pd.DataFrame:
     """
     在宽表基础上计算衍生特征。返回增加了特征列的 DataFrame。
+    add_team_features: 是否计算球队近期战绩（首次训练时设为 True）。
     """
     out = df.copy()
 
@@ -258,6 +259,14 @@ def compute_features(df: pd.DataFrame) -> pd.DataFrame:
     # 联赛编码
     if "division" in out.columns:
         out["div_encoded"] = pd.Categorical(out["division"]).codes
+
+    # 球队近期战绩特征
+    if add_team_features and "home_team" in out.columns and "ftr" in out.columns:
+        try:
+            from ai.team_features import compute_team_features
+            out = compute_team_features(out)
+        except Exception:
+            pass
 
     # 目标变量
     out["target"] = out["ftr"].map({"H": 0, "D": 1, "A": 2})
