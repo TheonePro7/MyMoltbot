@@ -177,10 +177,13 @@ def parse_bjdc_html(html: str) -> list[BjdcRow]:
     return rows
 
 
-def fetch_bjdc(timeout: float = 20.0) -> list[BjdcRow]:
-    """拉取当日北单数据。"""
+def fetch_bjdc(expect: str | None = None, timeout: float = 20.0) -> list[BjdcRow]:
+    """拉取北单数据。expect 为期号，不传则拉当期。"""
+    url = BJDC_URL
+    if expect:
+        url = f"{BJDC_URL}?expect={expect}"
     headers = {"User-Agent": USER_AGENT, "Accept": "text/html,*/*"}
-    r = requests.get(BJDC_URL, headers=headers, timeout=timeout)
+    r = requests.get(url, headers=headers, timeout=timeout)
     r.raise_for_status()
     text = r.content.decode("gb2312", errors="replace")
     return parse_bjdc_html(text)
