@@ -42,3 +42,4 @@ See `README.md` for full details. Quick reference:
 - The Odds API free tier has 500 requests/month; `python3 -m football_odds.odds_api_v2` uses ~6 requests per snapshot (one per league).
 - The AI backtest uses time-series split (not random), so training data always precedes test data chronologically.
 - The model's backtest accuracy (60.3%) includes match statistics features (shots, corners) that are only available post-match. For pre-match prediction, only odds-based features are used, which yields slightly lower but still significant accuracy improvement over the raw odds baseline (52.4%).
+- **与用户交流一律使用中文**，代码注释也使用中文。
