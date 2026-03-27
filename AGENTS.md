@@ -2,13 +2,13 @@
 
 ## Cursor Cloud specific instructions
 
-This repository is **MyMoltbot**, a Python Flask application for football (soccer) odds analysis (足彩赔率分析). It provides CLI tools and a web UI for analyzing European decimal odds, comparing bookmakers, simulated betting, and match result tracking.
+This repository is **MyMoltbot**, a Python-based football (soccer) odds analysis and prediction system. It includes a Flask web UI, CLI tools, a historical odds database (46K+ matches), a multi-bookmaker data pipeline, and an XGBoost prediction model.
 
 ### Tech stack
 
 - **Python 3.12**, Flask, requests, beautifulsoup4, python-dotenv
-- **SQLite** for simulated betting ledger (auto-created at `data/sim_bets.sqlite3`)
-- No external database or Docker services required
+- **XGBoost**, scikit-learn, pandas, numpy (AI prediction)
+- **SQLite** for all data storage (no external DB required)
 
 ### Running the application
 
@@ -19,26 +19,26 @@ See `README.md` for full details. Quick reference:
 | Install deps | `pip install -r requirements.txt` |
 | Run tests | `python3 -m unittest discover -s tests -p 'test_*.py' -v` |
 | CLI analyze | `python3 main.py analyze examples/matches_sample.json` |
-| CLI compare | `python3 main.py compare examples/matches_sample.json` |
-| Web app (dev) | `HOST=0.0.0.0 python3 -m web.app` (serves on port 5000) |
+| Web app (dev) | `HOST=0.0.0.0 python3 -m web.app` (port 5000) |
 | Health check | `curl http://localhost:5000/health` |
+| Import history (20 seasons) | `python3 -m football_odds.history_import --seasons 20 --leagues main` |
+| Snapshot live odds (54+ bookmakers) | `python3 -m football_odds.odds_api_v2` |
+| Train model + backtest | `python3 -m ai.train --backtest` |
+| DB stats | `python3 -m football_odds.history_import --stats` |
 
 ### Non-obvious notes
 
-- The web app loads `.env` automatically via `python-dotenv`. Copy `.env.example` to `.env` and fill in `ODDS_API_KEY` to enable The Odds API data source. Without this key, the default `jc500` (500.com) and `file` data sources still work.
-- Use `?source=file` query parameter to fall back to local JSON data (`examples/matches_sample.json`) if network sources are unavailable.
-- The SQLite database for simulated bets is auto-created on first use; no migrations needed.
-- No linter is currently configured in this repository (no flake8/ruff/pylint config). Tests are the primary quality gate.
-- Flask runs in non-debug mode by default; set `FLASK_DEBUG=1` to enable debug/reload mode.
-
-### Historical data module
-
-- **Import historical data**: `python3 -m football_odds.history_import --seasons 20 --leagues main`
-  - Downloads CSV from football-data.co.uk, caches locally in `data/csv_cache/`, imports into `data/history.sqlite3`
-  - `--leagues main` = E0, E1, SP1, D1, I1, F1 (top-tier 5 leagues + Championship)
-  - `--leagues all` = includes lower divisions and additional leagues
-  - Already-imported seasons are skipped unless `--force` is used
-- **Check stats**: `python3 -m football_odds.history_import --stats`
-- **Web browsing**: `/history` page with league filtering, match list, and per-match detail (1X2 odds, Asian handicap, O/U)
-- CSV files from football-data.co.uk sometimes have a UTF-8 BOM which is automatically stripped during parsing
-- The history database path can be overridden via `HISTORY_DB` environment variable
+- The web app loads `.env` automatically via `python-dotenv`. Copy `.env.example` to `.env` and fill in `ODDS_API_KEY` to enable The Odds API data source. Without this key, the `jc500` (500.com) and `file` data sources still work.
+- Use `?source=file` query parameter to fall back to local JSON data when network sources are unavailable.
+- All SQLite databases are auto-created on first use; no migrations needed. Paths:
+  - `data/sim_bets.sqlite3` — simulated betting ledger
+  - `data/history.sqlite3` — historical odds (46K+ matches, 580K+ odds records)
+- CSV files from football-data.co.uk sometimes have a UTF-8 BOM; the parser strips it automatically.
+- The `HISTORY_DB` env var overrides the history database path.
+- No linter is configured; tests (`python3 -m unittest discover -s tests`) are the primary quality gate.
+- Flask runs in non-debug mode by default; set `FLASK_DEBUG=1` for auto-reload.
+- The XGBoost model is saved to `data/models/` after training. It can be loaded via `MatchPredictor.load()`.
+- Historical data import is idempotent — already-imported seasons are skipped unless `--force` is used.
+- The Odds API free tier has 500 requests/month; `python3 -m football_odds.odds_api_v2` uses ~6 requests per snapshot (one per league).
+- The AI backtest uses time-series split (not random), so training data always precedes test data chronologically.
+- The model's backtest accuracy (60.3%) includes match statistics features (shots, corners) that are only available post-match. For pre-match prediction, only odds-based features are used, which yields slightly lower but still significant accuracy improvement over the raw odds baseline (52.4%).
