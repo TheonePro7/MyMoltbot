@@ -1,0 +1,2 @@
+# 足彩赔率分析：当前仅使用 Python 标准库，无第三方依赖。
+# 若需运行测试：pip install pytest（可选）

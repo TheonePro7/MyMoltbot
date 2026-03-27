@@ -1,0 +1,12 @@
+[
+  {
+    "match_id": "EPL-2025-01",
+    "home_team": "主队 A",
+    "away_team": "客队 B",
+    "lines": [
+      { "bookmaker": "庄家甲", "home": 2.10, "draw": 3.40, "away": 3.50 },
+      { "bookmaker": "庄家乙", "home": 2.05, "draw": 3.45, "away": 3.60 },
+      { "bookmaker": "庄家丙", "home": 2.15, "draw": 3.30, "away": 3.40 }
+    ]
+  }
+]
