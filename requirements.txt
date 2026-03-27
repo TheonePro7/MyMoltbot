@@ -11,4 +11,8 @@ scikit-learn>=1.4.0
 pandas>=2.0.0
 numpy>=1.24.0
 
+# FastAPI 后端
+fastapi>=0.100.0
+uvicorn>=0.20.0
+
 # 可选：pytest 用于测试
