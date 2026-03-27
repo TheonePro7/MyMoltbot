@@ -26,6 +26,7 @@ class MatchItem(BaseModel):
     division: str
     season: str
     match_date: str
+    match_time_bj: str | None = None
     home_team: str
     away_team: str
     fthg: int | None = None
@@ -77,6 +78,7 @@ class MatchDetail(BaseModel):
     season: str
     match_date: str
     match_time: str | None = None
+    match_time_bj: str | None = None
     home_team: str
     away_team: str
     fthg: int | None = None

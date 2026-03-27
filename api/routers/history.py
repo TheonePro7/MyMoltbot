@@ -102,6 +102,7 @@ def list_matches(
                 division=get_cn_name(m["division"]),
                 season=m["season"],
                 match_date=m["match_date"],
+                match_time_bj=m.get("match_time_bj"),
                 home_team=_get_team_cn(m["home_team"]),
                 away_team=_get_team_cn(m["away_team"]),
                 fthg=m.get("fthg"),
@@ -142,6 +143,7 @@ def get_match(match_id: int):
     return MatchDetail(
         match_id=m["id"], division=get_cn_name(m["division"]), season=m["season"],
         match_date=m["match_date"], match_time=m.get("match_time"),
+        match_time_bj=m.get("match_time_bj"),
         home_team=_get_team_cn(m["home_team"]), away_team=_get_team_cn(m["away_team"]),
         fthg=m.get("fthg"), ftag=m.get("ftag"), ftr=m.get("ftr"),
         hthg=m.get("hthg"), htag=m.get("htag"), referee=m.get("referee"),

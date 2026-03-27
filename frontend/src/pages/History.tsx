@@ -41,7 +41,8 @@ export default function History() {
   }, [page, division, season]);
 
   const columns = [
-    { title: '日期', dataIndex: 'match_date', key: 'date', width: 120 },
+    { title: '日期', dataIndex: 'match_date', key: 'date', width: 120,
+      render: (_: any, r: MatchItem) => `${r.match_date} ${(r as any).match_time_bj || ''}` },
     { title: '联赛', dataIndex: 'division', key: 'div', width: 70,
       render: (v: string) => <Tag>{v}</Tag> },
     { title: '主队', dataIndex: 'home_team', key: 'home' },

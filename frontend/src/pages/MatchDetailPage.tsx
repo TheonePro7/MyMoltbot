@@ -60,7 +60,7 @@ export default function MatchDetailPage() {
       <Card style={{ marginBottom: 16 }}>
         <Title level={3}>{match.home_team} vs {match.away_team}</Title>
         <Descriptions column={{ xs: 1, sm: 2, md: 4 }} size="small">
-          <Descriptions.Item label="日期">{match.match_date} {match.match_time || ''}</Descriptions.Item>
+          <Descriptions.Item label="北京时间">{match.match_date} {(match as any).match_time_bj || match.match_time || ''}</Descriptions.Item>
           <Descriptions.Item label="联赛">{match.division} ({match.season})</Descriptions.Item>
           <Descriptions.Item label="比分">
             {match.fthg != null ? (
