@@ -123,10 +123,19 @@ def _merge_odds_features(matches: pd.DataFrame, odds_1x2: pd.DataFrame,
     df = matches.copy()
 
     # 欧赔特征：初盘
+    # 庄家名映射：竞彩/北单 SP 映射到标准 B365/PS 特征列
+    _BM_ALIASES = {
+        "B365": ["B365", "Bet365", "竞彩SP", "北单SP"],
+        "PS": ["PS", "Pinnacle", "竞彩让球SP"],
+    }
+
     if not odds_1x2.empty:
         open_1x2 = odds_1x2[odds_1x2["is_closing"] == 0]
-        for bm in ["B365", "PS"]:
-            bm_data = open_1x2[open_1x2["bookmaker"] == bm].set_index("match_id")
+        for bm, aliases in _BM_ALIASES.items():
+            matched = open_1x2[open_1x2["bookmaker"].isin(aliases)]
+            if matched.empty:
+                matched = open_1x2[open_1x2["bookmaker"] == bm]
+            bm_data = matched.drop_duplicates(subset=["match_id"], keep="first").set_index("match_id")
             suffix = f"_{bm.lower()}_open"
             for col in ["home_odds", "draw_odds", "away_odds"]:
                 df = df.merge(

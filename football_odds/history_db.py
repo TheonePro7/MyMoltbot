@@ -147,6 +147,8 @@ _LEAGUE_SEED = [
     ("NO1", "Norway", "Eliteserien"),
     ("CH1", "Switzerland", "Super League"),
     ("AT1", "Austria", "Bundesliga"),
+    ("JC", "China", "竞彩足球"),
+    ("BD", "China", "北京单场"),
 ]
 
 
