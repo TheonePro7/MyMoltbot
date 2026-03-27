@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>足彩赔率分析</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <header>
+      <h1>足彩赔率分析（演示）</h1>
+      <p>基于欧赔（十进制）计算隐含概率、抽水、按比例去水与多庄对比 — 仅供学习，不构成投注建议。</p>
+    </header>
+
+    <main>
+      {% if error %}
+      <div class="alert">{{ error }}</div>
+      {% endif %}
+
+      <p class="meta">数据文件：<code>{{ data_path }}</code> · 可通过环境变量 <code>FOOTBALL_ODDS_DATA</code> 指定其他 JSON。</p>
+
+      {% for item in matches_data %}
+      {% set m = item.match %}
+      {% set c = item.compare %}
+      <section class="card">
+        <h2>{{ m.match_id }} · {{ m.home_team }} vs {{ m.away_team }}</h2>
+
+        <div class="consensus">
+          <div class="consensus-item">
+            <span>多庄去水后（主）</span>
+            <strong>{{ c.consensus_fair_probability_mean.home | pct }}</strong>
+          </div>
+          <div class="consensus-item">
+            <span>多庄去水后（平）</span>
+            <strong>{{ c.consensus_fair_probability_mean.draw | pct }}</strong>
+          </div>
+          <div class="consensus-item">
+            <span>多庄去水后（客）</span>
+            <strong>{{ c.consensus_fair_probability_mean.away | pct }}</strong>
+          </div>
+        </div>
+
+        <p class="meta">
+          赔率区间（主）{{ "%.2f"|format(c.odds_range.home.min) }} ~ {{ "%.2f"|format(c.odds_range.home.max) }}，
+          均值 {{ "%.2f"|format(c.odds_range.home.mean) }} ·
+          最高赔庄家：主 {{ c.best_odds_bookmaker.home }}，平 {{ c.best_odds_bookmaker.draw }}，客 {{ c.best_odds_bookmaker.away }}
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>庄家</th>
+              <th>主</th>
+              <th>平</th>
+              <th>客</th>
+              <th>抽水</th>
+              <th>去水后 主/平/客</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in c.per_bookmaker %}
+            <tr>
+              <td>{{ a.bookmaker }}</td>
+              <td class="odds">{{ "%.2f"|format(a.odds.home) }}</td>
+              <td class="odds">{{ "%.2f"|format(a.odds.draw) }}</td>
+              <td class="odds">{{ "%.2f"|format(a.odds.away) }}</td>
+              <td>{{ a.overround | pct }}</td>
+              <td>
+                {{ a.fair_probability_proportional.home | pct }} /
+                {{ a.fair_probability_proportional.draw | pct }} /
+                {{ a.fair_probability_proportional.away | pct }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+      {% endfor %}
+
+      {% if not matches_data and not error %}
+      <div class="alert">暂无比赛数据。</div>
+      {% endif %}
+
+      <div class="hint">
+        启动命令：<code>pip install -r requirements.txt</code> 后执行
+        <code>python3 -m web.app</code>，浏览器打开
+        <code>http://127.0.0.1:5000</code>。远程访问可设置环境变量
+        <code>HOST=0.0.0.0</code>。
+      </div>
+    </main>
+
+    <footer>MyMoltbot · 足彩分析演示页</footer>
+  </body>
+</html>

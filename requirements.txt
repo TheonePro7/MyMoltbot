@@ -1,2 +1,6 @@
-# 足彩赔率分析：当前仅使用 Python 标准库，无第三方依赖。
-# 若需运行测试：pip install pytest（可选）
+# 足彩赔率分析
+# CLI / 核心库：标准库即可。
+# Web 演示：Flask
+flask>=3.0.0
+
+# 可选：pytest 用于测试

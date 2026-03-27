@@ -19,6 +19,15 @@ python3 main.py compare examples/matches_sample.json --json-out
 
 数据格式见 `examples/matches_sample.json`。也可在代码中调用 `football_odds` 包。
 
+### Web 演示（浏览器）
+
+```bash
+pip install -r requirements.txt
+python3 -m web.app
+```
+
+浏览器打开 <http://127.0.0.1:5000>。默认加载 `examples/matches_sample.json`；可通过环境变量 `FOOTBALL_ODDS_DATA` 指定其他 JSON 路径。远程机器上需外网访问时，可设置 `HOST=0.0.0.0`（注意防火墙与安全）。
+
 ### 测试
 
 ```bash
