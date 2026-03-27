@@ -20,6 +20,10 @@ class TestWebApp(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.get_json(), {"ok": True})
 
+    def test_history_invalid_page_defaults_to_first(self) -> None:
+        r = self.client.get("/history?page=abc")
+        self.assertEqual(r.status_code, 200)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -344,7 +344,12 @@ def results_save():
 def history_page():
     division = (request.args.get("division") or "").strip() or None
     season = (request.args.get("season") or "").strip() or None
-    page = max(1, int(request.args.get("page") or "1"))
+    # 非法分页参数会导致 500，回退到第 1 页
+    page_raw = (request.args.get("page") or "1").strip()
+    try:
+        page = max(1, int(page_raw))
+    except ValueError:
+        page = 1
     per_page = 50
 
     with connect_history() as conn:
