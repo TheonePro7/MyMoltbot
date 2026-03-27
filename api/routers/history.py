@@ -21,6 +21,25 @@ from football_odds.history_db import (
     query_matches,
     summary_stats,
 )
+from football_odds.league_names import get_cn_name
+
+import json
+from pathlib import Path
+
+_team_mapping: dict[str, str] | None = None
+
+def _get_team_cn(en_name: str) -> str:
+    """英文球队名转中文，找不到返回原名。"""
+    global _team_mapping
+    if _team_mapping is None:
+        p = Path(__file__).resolve().parent.parent.parent / "data" / "team_name_mapping.json"
+        if p.exists():
+            with open(p, "r", encoding="utf-8") as f:
+                en_to_cn = json.load(f)
+            _team_mapping = {v: k for k, v in en_to_cn.items()}
+        else:
+            _team_mapping = {}
+    return _team_mapping.get(en_name, en_name)
 
 router = APIRouter(prefix="/api/history", tags=["历史数据"])
 
@@ -34,7 +53,14 @@ def get_stats():
         total_matches=s["total_matches"],
         total_odds_records=s["total_odds_records"],
         total_asian_records=s["total_asian_records"],
-        by_division=[LeagueStat(**d) for d in s["by_division"]],
+        by_division=[LeagueStat(
+            division=d["division"],
+            country=d.get("country"),
+            league_name=get_cn_name(d["division"]),
+            match_count=d["match_count"],
+            first_season=d.get("first_season"),
+            last_season=d.get("last_season"),
+        ) for d in s["by_division"]],
     )
 
 
@@ -73,11 +99,11 @@ def list_matches(
 
             items.append(MatchItem(
                 match_id=m["id"],
-                division=m["division"],
+                division=get_cn_name(m["division"]),
                 season=m["season"],
                 match_date=m["match_date"],
-                home_team=m["home_team"],
-                away_team=m["away_team"],
+                home_team=_get_team_cn(m["home_team"]),
+                away_team=_get_team_cn(m["away_team"]),
                 fthg=m.get("fthg"),
                 ftag=m.get("ftag"),
                 ftr=m.get("ftr"),
@@ -114,9 +140,9 @@ def get_match(match_id: int):
         ))
 
     return MatchDetail(
-        match_id=m["id"], division=m["division"], season=m["season"],
+        match_id=m["id"], division=get_cn_name(m["division"]), season=m["season"],
         match_date=m["match_date"], match_time=m.get("match_time"),
-        home_team=m["home_team"], away_team=m["away_team"],
+        home_team=_get_team_cn(m["home_team"]), away_team=_get_team_cn(m["away_team"]),
         fthg=m.get("fthg"), ftag=m.get("ftag"), ftr=m.get("ftr"),
         hthg=m.get("hthg"), htag=m.get("htag"), referee=m.get("referee"),
         home_shots=m.get("home_shots"), away_shots=m.get("away_shots"),

@@ -68,8 +68,8 @@ class MatchPredictor:
         X = valid[feature_cols].copy()
         y = valid["target"].values.astype(int)
 
-        # 填充缺失值为 -999（XGBoost 支持缺失值处理）
         X = X.fillna(-999)
+        X = X.replace([np.inf, -np.inf], -999)
 
         # 时间序列划分（最后 eval_ratio 作为验证集）
         split_idx = int(len(X) * (1 - eval_ratio))
@@ -119,7 +119,7 @@ class MatchPredictor:
         X = df[available].copy()
         for c in missing:
             X[c] = -999
-        X = X[self.feature_names].fillna(-999)
+        X = X[self.feature_names].fillna(-999).replace([np.inf, -np.inf], -999)
         for c in X.columns:
             X[c] = pd.to_numeric(X[c], errors="coerce").fillna(-999)
         dmat = xgb.DMatrix(X, feature_names=self.feature_names)
