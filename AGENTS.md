@@ -30,3 +30,15 @@ See `README.md` for full details. Quick reference:
 - The SQLite database for simulated bets is auto-created on first use; no migrations needed.
 - No linter is currently configured in this repository (no flake8/ruff/pylint config). Tests are the primary quality gate.
 - Flask runs in non-debug mode by default; set `FLASK_DEBUG=1` to enable debug/reload mode.
+
+### Historical data module
+
+- **Import historical data**: `python3 -m football_odds.history_import --seasons 20 --leagues main`
+  - Downloads CSV from football-data.co.uk, caches locally in `data/csv_cache/`, imports into `data/history.sqlite3`
+  - `--leagues main` = E0, E1, SP1, D1, I1, F1 (top-tier 5 leagues + Championship)
+  - `--leagues all` = includes lower divisions and additional leagues
+  - Already-imported seasons are skipped unless `--force` is used
+- **Check stats**: `python3 -m football_odds.history_import --stats`
+- **Web browsing**: `/history` page with league filtering, match list, and per-match detail (1X2 odds, Asian handicap, O/U)
+- CSV files from football-data.co.uk sometimes have a UTF-8 BOM which is automatically stripped during parsing
+- The history database path can be overridden via `HISTORY_DB` environment variable
