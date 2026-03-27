@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Card, Col, Row, Statistic, Table, Typography, Spin } from 'antd';
 import { DatabaseOutlined, LineChartOutlined, GlobalOutlined } from '@ant-design/icons';
-import { getStats, DashboardStats } from '../services/api';
+import { getStats } from '../services/api';
 
 const { Title } = Typography;
 
 export default function Dashboard() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [stats, setStats] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

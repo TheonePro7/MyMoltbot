@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, Table, Tag, Progress, Typography, Spin, Space, Tooltip } from 'antd';
 import { TrophyOutlined } from '@ant-design/icons';
-import { getPredictions, PredictionItem } from '../services/api';
+import { getPredictions } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
@@ -13,7 +13,7 @@ const labelMap: Record<string, { text: string; color: string }> = {
 };
 
 export default function Prediction() {
-  const [preds, setPreds] = useState<PredictionItem[]>([]);
+  const [preds, setPreds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 

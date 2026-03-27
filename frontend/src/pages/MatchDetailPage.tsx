@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Descriptions, Table, Tag, Spin, Button, Typography, Row, Col, Statistic } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { getMatchDetail, MatchDetail } from '../services/api';
+import { getMatchDetail } from '../services/api';
 
 const { Title } = Typography;
 
 export default function MatchDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [match, setMatch] = useState<MatchDetail | null>(null);
+  const [match, setMatch] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

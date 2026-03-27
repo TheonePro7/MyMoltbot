@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, Table, Select, Input, Space, Tag, Typography } from 'antd';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getMatches, getStats, MatchItem, LeagueStat } from '../services/api';
+import { getMatches, getStats } from '../services/api';
 
 const { Title } = Typography;
 
@@ -11,12 +11,12 @@ const ftrLabel: Record<string, string> = { H: '主胜', D: '平', A: '客胜' };
 export default function History() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [matches, setMatches] = useState<MatchItem[]>([]);
+  const [matches, setMatches] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
   const [division, setDivision] = useState(searchParams.get('division') || '');
   const [season, setSeason] = useState(searchParams.get('season') || '');
-  const [leagues, setLeagues] = useState<LeagueStat[]>([]);
+  const [leagues, setLeagues] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
