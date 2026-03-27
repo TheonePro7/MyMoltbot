@@ -1,0 +1,19 @@
+# 默认工作流：图文 → 图文平台 → 滑动视频 → 短视频平台
+name: default
+# 图文发布目标（实现为适配器，需对接各平台开放能力或浏览器自动化）
+text_image_platforms:
+  - xiaohongshu
+  - zhihu
+  - wechat_mp
+  - weibo
+# 短视频发布目标（滑动视频导出后可由此处钩子上传）
+video_platforms:
+  - douyin
+  - channels  # 微信视频号
+  - bilibili
+  - kuaishou
+# 每页展示秒数
+slide_duration_seconds: 3
+# 竖屏 9:16，适合抖音/快手/视频号
+video_width: 1080
+video_height: 1920
