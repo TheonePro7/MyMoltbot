@@ -38,11 +38,17 @@ python3 -m web.app
 
 远程访问可设置 `HOST=0.0.0.0`（注意防火墙与安全）。**The Odds API 为境外庄家数据，与体彩竞彩开售赔率不是同一来源。**
 
-### API Key 怎么配置（不要发给任何人）
+### The Odds API：Key 放在哪，Agent 才能调到真实数据？
 
-1. **推荐**：在项目根目录复制 `.env.example` 为 `.env`，填写 `ODDS_API_KEY=你的密钥`。启动 `python3 -m web.app` 时会自动加载（`python-dotenv`）。  
-2. **终端临时**：`export ODDS_API_KEY='你的密钥'` 后同一终端里运行程序。  
-3. **Cursor**：在终端用方式 1 或 2 即可；勿在聊天里粘贴 Key。
+**不要**在聊天里粘贴 Key。正确做法是：把 Key 放在 **运行 `python` 的那台机器、进程能读到的环境** 里——在 Cursor 里让我跑命令时，通常就是 **当前工作区所在环境**。
+
+| 方式 | 说明 |
+|------|------|
+| **项目根目录 `.env`（推荐）** | 复制 `.env.example` → `.env`，写一行 `ODDS_API_KEY=...`。已接入 `python-dotenv`，`python3 -m web.app` 会自动加载。文件已被 `.gitignore` 忽略，不会进 Git。**你在本机或 SSH 远端保存后，我在同一仓库里执行终端命令时就能读到。** |
+| **Cursor / 系统环境变量** | 在 Cursor 的 *Settings → Environment variables*（或你系统的用户环境变量）里增加 `ODDS_API_KEY`。对该工作区启动的终端、Agent 命令生效。 |
+| **仅当前终端** | `export ODDS_API_KEY='...'` 后再运行程序；适合临时测试。 |
+
+**说明**：没有 Key 时，仍可用 **500 网竞彩（`source=jc500`）** 拉真实 SP，不依赖 The Odds API。若要做 **境外多庄** 联调，必须把 Key 配在上述任一位置，而不是发在对话里。
 
 ### 完整 Web 功能（拉取到本地后）
 
