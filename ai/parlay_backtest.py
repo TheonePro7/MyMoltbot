@@ -271,6 +271,7 @@ def simulate_parlays(preds: pd.DataFrame, parlay_size: int = 2,
         'roi_pct': roi,
         'avg_odds': np.mean([p['total_odds'] for p in all_parlays]),
         'monthly': monthly,
+        'all_parlays': all_parlays,
         'sample_wins': [p for p in all_parlays if p['all_correct']][:10],
         'sample_losses': [p for p in all_parlays if not p['all_correct']][:5],
     }
@@ -330,13 +331,30 @@ def run_full_backtest(n_matches: int = 3000, stake: float = 2.0, log_fn=None) ->
     RESULT_DB.parent.mkdir(parents=True, exist_ok=True)
     sconn = sqlite3.connect(str(RESULT_DB))
     _init_result_db(sconn)
+    sconn.executescript("""
+        CREATE TABLE IF NOT EXISTS parlay_details (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            run_id TEXT NOT NULL,
+            parlay_type TEXT NOT NULL,
+            min_confidence REAL,
+            parlay_date TEXT,
+            parlay_index INTEGER,
+            is_win INTEGER,
+            total_odds REAL,
+            stake REAL,
+            payout REAL,
+            legs_json TEXT
+        );
+    """)
     run_id = str(uuid.uuid4())[:8]
+    now_iso = datetime.now(timezone.utc).isoformat()
+
     for key, result in all_results.items():
         sconn.execute(
             """INSERT INTO parlay_runs (id, run_at, description, parlay_type, min_confidence,
                stake, n_parlays, n_wins, total_staked, total_payout, profit, roi_pct, details_json)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (f"{run_id}_{key}", datetime.now(timezone.utc).isoformat(), key,
+            (f"{run_id}_{key}", now_iso, key,
              result.get('type', key.split('_')[0]),
              result.get('min_confidence', 0),
              stake,
@@ -348,6 +366,22 @@ def run_full_backtest(n_matches: int = 3000, stake: float = 2.0, log_fn=None) ->
              result.get('roi_pct', 0),
              json.dumps(result, ensure_ascii=False, default=str)),
         )
+
+        # 保存每注明细
+        all_parlays = result.get('sample_wins', []) + result.get('sample_losses', [])
+        if 'all_parlays' in result:
+            all_parlays = result['all_parlays']
+        for i, p in enumerate(all_parlays):
+            sconn.execute(
+                """INSERT INTO parlay_details (run_id, parlay_type, min_confidence, parlay_date,
+                   parlay_index, is_win, total_odds, stake, payout, legs_json)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (f"{run_id}_{key}", key.split('_')[0], result.get('min_confidence', 0),
+                 p.get('date', ''), i, 1 if p.get('all_correct') else 0,
+                 p.get('total_odds', 0), p.get('stake', stake), p.get('payout', 0),
+                 json.dumps(p.get('legs', []), ensure_ascii=False, default=str)),
+            )
+
     sconn.commit()
     sconn.close()
 

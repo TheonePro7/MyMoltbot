@@ -8,6 +8,7 @@ import Prediction from './pages/Prediction';
 import Evaluate from './pages/Evaluate';
 import TrainingDashboard from './pages/TrainingDashboard';
 import ParlayBacktest from './pages/ParlayBacktest';
+import DailyRecommend from './pages/DailyRecommend';
 
 const { Header, Content, Footer } = Layout;
 
@@ -19,6 +20,7 @@ function AppMenu() {
   if (path.startsWith('/prediction')) selected = '/prediction';
   if (path.startsWith('/evaluate')) selected = '/evaluate';
   if (path.startsWith('/growth')) selected = '/growth';
+  if (path.startsWith('/recommend')) selected = '/recommend';
   if (path.startsWith('/parlay')) selected = '/parlay';
 
   return (
@@ -29,6 +31,7 @@ function AppMenu() {
         { key: '/prediction', icon: <ExperimentOutlined />, label: <Link to="/prediction">智能预测</Link> },
         { key: '/evaluate', icon: <BarChartOutlined />, label: <Link to="/evaluate">模型评估</Link> },
         { key: '/growth', icon: <RiseOutlined />, label: <Link to="/growth">模型成长</Link> },
+        { key: '/recommend', icon: <ExperimentOutlined />, label: <Link to="/recommend">每日推荐</Link> },
         { key: '/parlay', icon: <DashboardOutlined />, label: <Link to="/parlay">串关回测</Link> },
         { key: 'sim', icon: <ShoppingCartOutlined />, label: <a href="http://localhost:5000/bet" target="_blank" rel="noreferrer">模拟投注</a> },
       ]}
@@ -58,6 +61,7 @@ export default function App() {
               <Route path="/prediction" element={<Prediction />} />
               <Route path="/evaluate" element={<Evaluate />} />
               <Route path="/growth" element={<TrainingDashboard />} />
+              <Route path="/recommend" element={<DailyRecommend />} />
               <Route path="/parlay" element={<ParlayBacktest />} />
             </Routes>
           </Content>

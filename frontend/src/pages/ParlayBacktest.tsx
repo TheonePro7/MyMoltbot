@@ -146,11 +146,96 @@ export default function ParlayBacktest() {
         </Card>
       ))}
 
+      {/* 详细投注列表 */}
+      <ParlayDetailList />
+
       {runs.length === 0 && (
         <Card>
           <Text type="secondary">暂无回测数据。运行 <code>python3 -m ai.parlay_backtest</code> 生成数据。</Text>
         </Card>
       )}
     </div>
+  );
+}
+
+function ParlayDetailList() {
+  const [details, setDetails] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [parlayType, setParlayType] = useState('2串1');
+  const [conf, setConf] = useState(60);
+  const [onlyWins, setOnlyWins] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const loadDetails = () => {
+    setLoading(true);
+    axios.get('/api/parlay/details', {
+      params: { parlay_type: parlayType, min_confidence: conf, page, page_size: 20, only_wins: onlyWins }
+    }).then(r => {
+      setDetails(r.data.details);
+      setTotal(r.data.total);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  };
+
+  useEffect(() => { loadDetails(); }, [page, parlayType, conf, onlyWins]);
+
+  return (
+    <Card title="详细投注列表" style={{ marginTop: 24 }}>
+      <Space style={{ marginBottom: 16 }} wrap>
+        {['2串1', '3串1', '4串1'].map(t => (
+          <Tag key={t} color={parlayType === t ? 'blue' : 'default'} style={{ cursor: 'pointer', padding: '4px 12px' }}
+            onClick={() => { setParlayType(t); setPage(1); }}>{t}</Tag>
+        ))}
+        <span>置信度:</span>
+        {[50, 60, 70].map(c => (
+          <Tag key={c} color={conf === c ? 'green' : 'default'} style={{ cursor: 'pointer', padding: '4px 8px' }}
+            onClick={() => { setConf(c); setPage(1); }}>≥{c}%</Tag>
+        ))}
+        <Tag color={onlyWins ? 'gold' : 'default'} style={{ cursor: 'pointer', padding: '4px 8px' }}
+          onClick={() => { setOnlyWins(!onlyWins); setPage(1); }}>{onlyWins ? '只看命中 ✓' : '全部'}</Tag>
+        <Text type="secondary">共 {total} 注</Text>
+      </Space>
+
+      <Table dataSource={details} rowKey="id" loading={loading} size="small"
+        pagination={{ current: page, total, pageSize: 20, onChange: p => setPage(p), showTotal: t => `共${t}注` }}
+        expandable={{
+          expandedRowRender: (record: any) => (
+            <Table dataSource={record.legs} rowKey={(_, i) => String(i)} size="small" pagination={false}
+              columns={[
+                { title: '联赛', dataIndex: 'league', key: 'lg', width: 70, render: (v: string) => <Tag color="blue">{v}</Tag> },
+                { title: '主队', dataIndex: 'home', key: 'h' },
+                { title: '客队', dataIndex: 'away', key: 'a' },
+                { title: '预测', dataIndex: 'pred', key: 'p', width: 60,
+                  render: (v: string) => <Tag color={v === 'H' ? 'green' : v === 'A' ? 'red' : 'orange'}>{v === 'H' ? '主胜' : v === 'D' ? '平' : '客胜'}</Tag> },
+                { title: '比分', dataIndex: 'score', key: 's', width: 60 },
+                { title: '结果', dataIndex: 'correct', key: 'c', width: 50,
+                  render: (v: boolean) => v ? <Tag color="green">✓</Tag> : <Tag color="red">✗</Tag> },
+                { title: 'SP', dataIndex: 'odds', key: 'o', width: 60, render: (v: number) => v?.toFixed(2) },
+                { title: '置信度', dataIndex: 'confidence', key: 'cf', width: 70,
+                  render: (v: number) => `${Math.round(v * 100)}%` },
+              ]} />
+          ),
+        }}
+        columns={[
+          { title: '日期', dataIndex: 'parlay_date', key: 'd', width: 110 },
+          { title: '结果', dataIndex: 'is_win', key: 'w', width: 60,
+            render: (v: number) => v ? <Tag color="green">命中</Tag> : <Tag color="red">未中</Tag> },
+          { title: '总赔率', dataIndex: 'total_odds', key: 'o', width: 80,
+            render: (v: number) => <Text strong>{v?.toFixed(2)}</Text> },
+          { title: '投入', dataIndex: 'stake', key: 's', width: 60, render: (v: number) => `¥${v}` },
+          { title: '回报', dataIndex: 'payout', key: 'p', width: 80,
+            render: (v: number) => <Text style={{ color: v > 0 ? '#52c41a' : '#999' }}>¥{v?.toFixed(2)}</Text> },
+          { title: '比赛', key: 'legs', render: (_: any, r: any) => (
+            <Space size={4} wrap>
+              {r.legs?.map((leg: any, i: number) => (
+                <Tag key={i} color={leg.correct ? 'green' : 'red'}>
+                  {leg.home} vs {leg.away} {leg.pred === 'H' ? '主' : leg.pred === 'D' ? '平' : '客'} {leg.score}
+                </Tag>
+              ))}
+            </Space>
+          )},
+        ]} />
+    </Card>
   );
 }
