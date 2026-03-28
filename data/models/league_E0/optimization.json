@@ -1,0 +1,16 @@
+{
+  "division": "E0",
+  "best_accuracy": 0.624,
+  "best_params": {
+    "colsample_bytree": 0.8,
+    "learning_rate": 0.05,
+    "max_depth": 6,
+    "min_child_weight": 5,
+    "subsample": 0.8
+  },
+  "n_features": 89,
+  "train_size": 7029,
+  "test_size": 500,
+  "search_mode": "fast",
+  "n_combinations": 4
+}

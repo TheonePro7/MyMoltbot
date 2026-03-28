@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}方案详情{% endblock %}
+{% block body %}
+<header>
+  <h1>方案详情</h1>
+  <p><a href="{{ url_for('slips_list', session_id=slip.session_id) }}">返回列表</a></p>
+</header>
+<main>
+  <div class="card">
+    <p class="meta">状态：<strong>{{ slip.status }}</strong> · 竞彩日 {{ slip.jc_date }} · 倍数 {{ slip.multiplier }} · 每子注面值 {{ slip.stake_per_line }} 元</p>
+    <p class="meta">本金 {{ slip.total_stake | money }} 元
+      {% if slip.total_payout is not none %} · 返还 {{ slip.total_payout | money }} 元 · 盈亏 <span class="{% if slip.profit >= 0 %}profit-pos{% else %}profit-neg{% endif %}">{{ slip.profit | money }} 元</span>{% endif %}
+    </p>
+    <p class="meta">过关：{% for c in slip.combo_types %}<code>{{ c }}</code> {% endfor %}</p>
+    {% if slip.status == 'pending' %}
+    <form method="post" action="{{ url_for('slip_settle', slip_id=slip.id) }}">
+      <button type="submit">按当前赛果结算</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>选项</h2>
+    <ul class="plain-list">
+      {% for s in slip.selections %}
+      <li>{{ s.matchnum }} {{ s.home_team }} vs {{ s.away_team }} · {{ s.market_label }} · {{ s.outcome_label }} @ {{ "%.2f"|format(s.odds) }}
+        {% if s.selection_id in slip.dan_ids %}<span class="badge live">胆</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>子注</h2>
+    <div class="table-scroll">
+      <table class="dense">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>命中</th>
+            <th>本金</th>
+            <th>返还</th>
+            <th>场次组合</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ln in slip.subbets %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{% if ln.won is defined %}{% if ln.won %}是{% else %}否{% endif %}{% else %}—{% endif %}</td>
+            <td>{% if ln.stake is defined %}{{ ln.stake | money }}{% else %}-{% endif %}</td>
+            <td>{% if ln.payout is defined %}{{ ln.payout | money }}{% else %}-{% endif %}</td>
+            <td>
+              {% for p in ln.picks %}
+              {{ p.matchnum }} {{ p.outcome_label }}@{{ "%.2f"|format(p.odds) }}{% if not loop.last %} + {% endif %}
+              {% endfor %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+<footer>MyMoltbot</footer>
+{% endblock %}

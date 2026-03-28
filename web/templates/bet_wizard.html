@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}模拟投注{% endblock %}
+{% block body %}
+<header>
+  <h1>模拟投注</h1>
+  <p>勾选场次（同一场只能选胜平负<strong>或</strong>让球中的一项）、可选<strong>胆</strong>、选择最多 <strong>5 种</strong>过关方式；每注面值 <strong>2 元</strong> × 倍数 × 子注条数 = 总本金。结算规则见文档。</p>
+</header>
+<main>
+  <form class="toolbar" method="get" action="{{ url_for('bet_wizard') }}">
+    <label>竞彩日期 <input type="date" name="date" value="{{ jc_date }}" /></label>
+    <button type="submit">加载赛程</button>
+  </form>
+
+  <form method="post" action="{{ url_for('bet_submit') }}" id="betForm">
+    <input type="hidden" name="jc_date" value="{{ jc_date }}" />
+    <div class="card">
+      <h2>账本</h2>
+      <label>当前账本
+        <select name="session_id">
+          {% for s in sessions %}
+          <option value="{{ s.id }}" {% if s.id == session_id %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <p class="meta"><a href="{{ url_for('slips_list') }}">查看方案与盈亏</a></p>
+    </div>
+
+    <div class="card">
+      <h2>选场（勾选投注项，同场仅一项）</h2>
+      <div class="table-scroll">
+        <table class="dense">
+          <thead>
+            <tr>
+              <th>选</th>
+              <th>胆</th>
+              <th>场次</th>
+              <th>对阵</th>
+              <th>玩法</th>
+              <th>项</th>
+              <th>SP</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in selections %}
+            <tr>
+              <td><input type="checkbox" name="selection_id" value="{{ s.selection_id }}" class="sel-cb" /></td>
+              <td><input type="checkbox" name="dan_id" value="{{ s.selection_id }}" class="dan-cb" /></td>
+              <td>{{ s.matchnum }}</td>
+              <td>{{ s.home_team }} vs {{ s.away_team }}</td>
+              <td>{{ s.market_label }}</td>
+              <td>{{ s.outcome_label }}</td>
+              <td class="odds">{{ "%.2f"|format(s.odds) }}</td>
+              <td>{% if s.ended %}已截止{% else %}未赛{% endif %} {% if s.score_text %}{{ s.score_text }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>过关方式（最多选 5 种）</h2>
+      <p class="meta" id="comboHint">请先勾选比赛，下方将显示可用「几串几」。</p>
+      <div id="comboBox" class="combo-grid"></div>
+      <p class="meta">倍数（整数）<input type="number" name="multiplier" value="1" min="1" style="width:5rem" /></p>
+      <p class="meta">每子注面值（元）<input type="number" name="stake_per_line" value="{{ stake_default }}" min="0.01" step="0.01" style="width:5rem" /></p>
+      <button type="submit" class="btn-primary">提交模拟方案</button>
+    </div>
+  </form>
+</main>
+
+<script>
+const COMBO_BY_N = {
+  1: ["单关"],
+  2: ["单关", "2串1", "2串3"],
+  3: ["单关", "3串1", "3串4", "3串7"],
+  4: ["单关", "4串1", "4串5", "4串11", "4串15"],
+  5: ["单关", "5串1", "5串6", "5串16", "5串26", "5串31"],
+};
+function comboOptionsForN(n) {
+  if (n < 1) return [];
+  if (COMBO_BY_N[n]) return COMBO_BY_N[n];
+  return ["单关", n + "串1"];
+}
+function uniqueFixtures() {
+  const rows = document.querySelectorAll("tbody tr");
+  const set = new Set();
+  rows.forEach((tr) => {
+    const sel = tr.querySelector(".sel-cb");
+    if (sel && sel.checked) {
+      const id = sel.value;
+      const fid = id.split("-")[0];
+      set.add(fid);
+    }
+  });
+  return set.size;
+}
+function updateCombos() {
+  const n = uniqueFixtures();
+  const box = document.getElementById("comboBox");
+  const hint = document.getElementById("comboHint");
+  box.innerHTML = "";
+  if (n < 1) {
+    hint.textContent = "请先勾选比赛。";
+    return;
+  }
+  hint.textContent = "已选 " + n + " 场，请勾选过关方式（最多 5 种）：";
+  const opts = comboOptionsForN(n);
+  opts.forEach((name) => {
+    const id = "ct_" + name;
+    const lab = document.createElement("label");
+    lab.className = "combo-item";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.name = "combo_type";
+    cb.value = name;
+    cb.addEventListener("change", () => {
+      const checked = box.querySelectorAll('input[name="combo_type"]:checked');
+      if (checked.length > 5) {
+        cb.checked = false;
+        alert("最多选择 5 种过关方式");
+      }
+    });
+    lab.appendChild(cb);
+    lab.appendChild(document.createTextNode(" " + name));
+    box.appendChild(lab);
+  });
+}
+document.querySelectorAll(".sel-cb").forEach((el) => el.addEventListener("change", updateCombos));
+document.getElementById("betForm").addEventListener("submit", (e) => {
+  const n = uniqueFixtures();
+  if (n < 1) {
+    e.preventDefault();
+    alert("请至少选择一场");
+    return;
+  }
+  const ct = document.querySelectorAll('input[name="combo_type"]:checked');
+  if (ct.length < 1) {
+    e.preventDefault();
+    alert("请至少选择一种过关方式");
+    return;
+  }
+});
+updateCombos();
+</script>
+<footer>MyMoltbot</footer>
+{% endblock %}

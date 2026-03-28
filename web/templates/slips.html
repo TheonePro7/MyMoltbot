@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}方案与盈亏{% endblock %}
+{% block body %}
+<header>
+  <h1>模拟方案与盈亏</h1>
+  <p>数据存于本地 SQLite（<code>data/sim_bets.sqlite3</code>，可用环境变量 <code>SIM_BET_DB</code> 修改）。</p>
+</header>
+<main>
+  <div class="card">
+    <h2>账本</h2>
+    <form method="get" class="inline-form">
+      <select name="session_id" onchange="this.form.submit()">
+        {% for s in sessions %}
+        <option value="{{ s.id }}" {% if s.id == session_id %}selected{% endif %}>{{ s.name }}</option>
+        {% endfor %}
+      </select>
+    </form>
+    <form method="post" action="{{ url_for('session_new') }}" class="inline-form">
+      <input type="text" name="name" placeholder="新账本名称" />
+      <button type="submit">新建账本</button>
+    </form>
+  </div>
+
+  <div class="card summary-cards">
+    <div class="consensus-item">
+      <span>方案数</span>
+      <strong>{{ summary.cnt or 0 }}</strong>
+    </div>
+    <div class="consensus-item">
+      <span>已结算</span>
+      <strong>{{ summary.settled_cnt or 0 }}</strong>
+    </div>
+    <div class="consensus-item">
+      <span>待结算</span>
+      <strong>{{ summary.pending_cnt or 0 }}</strong>
+    </div>
+    <div class="consensus-item">
+      <span>总投入（已记方案）</span>
+      <strong>{{ summary.sum_stake | money }} 元</strong>
+    </div>
+    <div class="consensus-item">
+      <span>已结算盈亏合计</span>
+      <strong class="{% if (summary.sum_profit or 0) >= 0 %}profit-pos{% else %}profit-neg{% endif %}">{{ summary.sum_profit | money }} 元</strong>
+    </div>
+  </div>
+
+  <form method="post" action="{{ url_for('settle_all') }}" class="card">
+    <input type="hidden" name="session_id" value="{{ session_id }}" />
+    <button type="submit">一键结算本账本全部待结算方案</button>
+    <span class="meta">需先在「赛果录入」中填写比分。</span>
+  </form>
+
+  <div class="card">
+    <h2>方案列表</h2>
+    <div class="table-scroll">
+      <table class="dense">
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>状态</th>
+            <th>竞彩日</th>
+            <th>本金</th>
+            <th>返还</th>
+            <th>盈亏</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in slips %}
+          <tr>
+            <td>{{ s.created_at[:19] }}</td>
+            <td>{{ s.status }}</td>
+            <td>{{ s.jc_date }}</td>
+            <td>{{ s.total_stake | money }}</td>
+            <td>{% if s.total_payout is not none %}{{ s.total_payout | money }}{% else %}-{% endif %}</td>
+            <td class="{% if s.profit is not none and s.profit >= 0 %}profit-pos{% elif s.profit is not none %}profit-neg{% endif %}">
+              {% if s.profit is not none %}{{ s.profit | money }}{% else %}-{% endif %}
+            </td>
+            <td><a href="{{ url_for('slip_detail', slip_id=s.id) }}">详情</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+<footer>MyMoltbot</footer>
+{% endblock %}
