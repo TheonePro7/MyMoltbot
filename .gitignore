@@ -7,3 +7,4 @@ venv/
 data/*.sqlite3
 data/*.db
 data/csv_cache/
+node_modules/
